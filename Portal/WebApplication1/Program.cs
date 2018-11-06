@@ -8,22 +8,13 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 
-namespace Portal.Web.Presentation
+namespace WebApplication1
 {
     public class Program
     {
         public static void Main(string[] args)
         {
-            try
-            {
-                CreateWebHostBuilder(args).Build().Run();
-            }
-            catch (Exception e)
-            {
-                Console.WriteLine(e);
-                throw;
-            }
-        
+            CreateWebHostBuilder(args).Build().Run();
         }
 
         public static IWebHostBuilder CreateWebHostBuilder(string[] args) =>

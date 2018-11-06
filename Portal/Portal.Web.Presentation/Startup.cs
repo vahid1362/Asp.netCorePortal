@@ -12,29 +12,28 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Newtonsoft.Json.Serialization;
 using Portal.core.Infrastructure;
 using Portal.Infrastructure;
 using Portal.Service.Media;
 using Portal.Service.News;
 using Portal.Standard.Service.Media;
 using Portal.Web.Presentation.Area.Extension;
-using IConfiguration = Microsoft.Extensions.Configuration.IConfiguration;
+
 
 namespace Portal.Web.Presentation
 {
     public class Startup
     {
-        public Startup(IConfiguration configuration)
+        public Startup(IConfiguration configuration, IMapper mapper)
         {
             Configuration = configuration;
-           
+            Mapper = mapper;
         }
 
         public IConfiguration Configuration { get; }
 
-
-
-
+        public IMapper Mapper { get; }
 
         // This method gets called by the runtime. Use this method to add services to the container.
         public void ConfigureServices(IServiceCollection services)
@@ -51,11 +50,11 @@ namespace Portal.Web.Presentation
 
             var mapper = CreateMapperConfiguration();
             services.AddSingleton(mapper);
-            services.AddMvc().AddNToastNotifyToastr();
+            services.AddMvc().AddJsonOptions(options => options.SerializerSettings.ContractResolver=new CamelCasePropertyNamesContractResolver()).AddNToastNotifyToastr();
             services.AddKendo();
             services.AddTransient(typeof(IRepository<>), typeof(EfRepository<>));
             services.AddTransient<INewsService, NewsService>();
-         
+            //services.AddTransient<IPictureService, PictureService>();
             services.AddTransient<IHostingEnvironment, HostingEnvironment>();
 
             //   services.AddIdentity<AppUser, IdentityRole>();
@@ -75,28 +74,32 @@ namespace Portal.Web.Presentation
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IHostingEnvironment env)
         {
+
+
             if (env.IsDevelopment())
             {
+              
                 app.UseDeveloperExceptionPage();
             }
             else
             {
                 app.UseExceptionHandler("/Error");
-                app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            app.UseStatusCodePages();
             app.UseStaticFiles();
-            app.UseCookiePolicy();
-
+            app.UseAuthentication();
+            app.UseNToastNotify();
             app.UseMvc(routes =>
             {
-                routes.MapRoute(name: "AreaRoute",
+                routes.MapRoute(
+                    name: "areas",
                     template: "{area:exists}/{controller=Home}/{action=Index}/{id?}"
                 );
-                routes.MapRoute(name: "Defualt",
-                    template: "{controller=Home}/{action=Index}/{id?}"
-                );
+                routes.MapRoute(
+                    name: "default",
+                    template: "{controller=home}/{action=Index}/{id?}"
+                    );
             });
         }
     }
